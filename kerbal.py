@@ -18,6 +18,9 @@ class Spot:
 
 if __name__ == '__main__':
     win = Window((1600, 900))
+    win.add_handler('d', lambda r: rocket.tilt(1, 'right'))
+    win.add_handler('a', lambda r: rocket.tilt(1, 'left'))
+
     spots = [Spot(100, 100, 40), Spot(200, 300, 80), Spot(600, 600, 120)]
     rocket = Rocket(x=120, y=300, width=50, height=100)
     while win.open:

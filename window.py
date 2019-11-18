@@ -21,6 +21,9 @@ class Window:
         self.master.destroy()
         self.__is_open = False
 
+    def add_handler(self, key, handler):
+        self.master.bind(key, handler)
+
     @property
     def width(self):
         return self.master.winfo_width()
