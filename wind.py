@@ -71,6 +71,7 @@ class WindRect:
 
     width = 100
     height = 5
+    color = '#cae2e8'
 
     def __init__(self, x, y):
         self.x = x
@@ -78,4 +79,4 @@ class WindRect:
 
     def draw(self, canvas: tkinter.Canvas):
         canvas.create_rectangle(self.x, self.y, self.x + WindRect.width, self.y + WindRect.height,
-                                fill='#e3e3e3', outline='#e3e3e3')
+                                fill=WindRect.color, outline=WindRect.color)
