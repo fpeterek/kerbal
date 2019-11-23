@@ -8,10 +8,7 @@ class Rocket:
     base_tilt_up = 90.0
     base_tilt_left = 235.0
     base_tilt_right = 305.0
-
-    force_x = 0
-    force_y = 0
-    force_r = 0
+    air_res = 4.0
 
     def __init__(self, x, y, width, height):
         self.angle = 0.0
@@ -21,6 +18,11 @@ class Rocket:
         self.up = GravityPoint(x, y - height*0.66)
         self.left = GravityPoint(x - width*0.5, y + height*0.33)
         self.right = GravityPoint(x + width*0.5, y + height*0.33)
+        self.wind_f = 0
+        self.wind_acc = 0
+        self.force_x = 0
+        self.force_y = 0
+        self.force_r = 0
 
         self.ud_dist = \
             ((self.left.x - self.up.x) ** 2 + (self.left.y - self.up.y) ** 2) ** 0.5
@@ -43,6 +45,9 @@ class Rocket:
         self.right.draw(canvas)
         self.center.draw(canvas)
 
+    def calc_dx(self, dt):
+        wind_acc = self.wind_f / dt
+
     def move_x(self, timedelta):
         dx = self.force_x * timedelta
         self.center.x += dx
@@ -56,6 +61,9 @@ class Rocket:
         self.up.y += dy
         self.left.y += dy
         self.right.y += dy
+
+    def set_wind(self, wind):
+        self.wind_f = wind
 
     def tick(self, timedelta):
         self.move_x(timedelta)
