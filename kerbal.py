@@ -19,13 +19,15 @@ class Kerbal:
         self.win.add_handler('a', lambda x: self.left())
         self.win.add_handler('d', lambda x: self.right())
 
-        self.win.add_handler('<KeyRelease-a>', lambda x: print('A up'))
-        self.win.add_handler('<KeyRelease-d>', lambda x: print('D up'))
+        # self.win.add_handler('<KeyRelease-a>', lambda x: print('A up'))
+        # self.win.add_handler('<KeyRelease-d>', lambda x: print('D up'))
 
     def left(self):
+        self.rocket.enable_engine('right')
         self.rocket.tilt(1, 'left')
 
     def right(self):
+        self.rocket.enable_engine('left')
         self.rocket.tilt(1, 'right')
 
     def up(self):
@@ -37,15 +39,11 @@ class Kerbal:
             delta = (c_time - self.last_time) / 1000
             self.tick(delta)
             self.last_time = c_time
-            self.handle_events()
-
-    def handle_events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.win.close()
 
     def tick(self, timedelta: float):
         self.wind_v = self.wind.tick(timedelta)
+        self.rocket.set_wind(self.wind_v)
+        self.rocket.tick(timedelta)
         self.draw()
 
     def draw(self):

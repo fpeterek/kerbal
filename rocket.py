@@ -1,5 +1,6 @@
 import math
 
+from engine import Engine
 from gravity_point import GravityPoint
 
 
@@ -8,7 +9,8 @@ class Rocket:
     base_tilt_up = 90.0
     base_tilt_left = 235.0
     base_tilt_right = 305.0
-    air_res = 4.0
+    air_res = 360.0
+    max_horizontal_velocity = 360.0
 
     def __init__(self, x, y, width, height):
         self.angle = 0.0
@@ -23,6 +25,10 @@ class Rocket:
         self.force_x = 0
         self.force_y = 0
         self.force_r = 0
+
+        self.left_engine = Engine()
+        self.right_engine = Engine()
+        self.bottom_engine = Engine()
 
         self.ud_dist = \
             ((self.left.x - self.up.x) ** 2 + (self.left.y - self.up.y) ** 2) ** 0.5
@@ -45,10 +51,33 @@ class Rocket:
         self.right.draw(canvas)
         self.center.draw(canvas)
 
-    def calc_dx(self, dt):
+    def bound_forces(self):
+        self.force_x = max(self.force_x, Rocket.max_horizontal_velocity * -1)
+        self.force_x = min(self.force_x, Rocket.max_horizontal_velocity)
+
+    def calc_forces(self, dt):
+        self.force_x += self.calc_dx(dt)
+        self.force_y += self.calc_dy(dt)
+        self.bound_forces()
+
+    def calc_dx(self, dt) -> float:
         wind_acc = self.wind_f / dt
 
+        dec = Rocket.air_res * dt * (1 if self.force_x < 0 else -1)
+        #if abs(dec) > abs(self.force_x):
+        #    dec = self.force_x * -1
+        #dec = 0
+        left = self.left_engine.on * Engine.power * dt
+        right = self.right_engine.on * -Engine.power * dt
+        dx = 0 + left + right + dec
+        # print(f'left={left}, right={right}, dec={dec}, dx={dx}')
+        return dx
+
+    def calc_dy(self, dt) -> float:
+        return 0.0
+
     def move_x(self, timedelta):
+        # print(f'x force: {self.force_x}')
         dx = self.force_x * timedelta
         self.center.x += dx
         self.up.x += dx
@@ -66,8 +95,25 @@ class Rocket:
         self.wind_f = wind
 
     def tick(self, timedelta):
+        if not timedelta:
+            return
+        self.calc_forces(timedelta)
         self.move_x(timedelta)
         self.move_y(timedelta)
+        self.tick_engines(timedelta)
+
+    def tick_engines(self, timedelta):
+        self.left_engine.tick(timedelta)
+        self.right_engine.tick(timedelta)
+        self.bottom_engine.tick(timedelta)
+
+    def enable_engine(self, engine: str):
+        if engine == 'left':
+            self.left_engine.turn_on()
+        elif engine == 'right':
+            self.right_engine.turn_on()
+        elif engine == 'bottom':
+            self.bottom_engine.turn_on()
 
     @property
     def up_angle(self):
