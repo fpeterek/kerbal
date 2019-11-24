@@ -20,8 +20,8 @@ class Rocket:
         self.up = GravityPoint(x, y - height*0.66)
         self.left = GravityPoint(x - width*0.5, y + height*0.33)
         self.right = GravityPoint(x + width*0.5, y + height*0.33)
-        self.wind_f = 0
-        self.wind_acc = 0
+        self.wind_velocity = 0
+        self.wind_effect = 0
         self.force_x = 0
         self.force_y = 0
         self.force_r = 0
@@ -56,29 +56,74 @@ class Rocket:
         self.force_x = min(self.force_x, Rocket.max_horizontal_velocity)
 
     def calc_forces(self, dt):
-        self.force_x += self.calc_dx(dt)
-        self.force_y += self.calc_dy(dt)
+        self.calc_wind_effect(dt)
+        self.force_x += self.calc_dfx(dt)
+        self.force_y += self.calc_dfy(dt)
         self.bound_forces()
 
-    def calc_dx(self, dt) -> float:
-        wind_acc = self.wind_f / dt
+    def wind_decelerate(self, dt: float) -> float:
+        dec = Rocket.air_res * dt
+        if abs(self.wind_effect) - dec < 0:
+            dec = -self.wind_effect
+        return dec * math.copysign(1, self.wind_velocity)
 
+    def wind_accelerate(self, dt: float) -> float:
+        wind_v2 = self.wind_velocity ** 2
+        acc = wind_v2 * dt
+        if abs(self.wind_effect) + acc > wind_v2:
+            acc = wind_v2 - abs(self.wind_effect)
+        print(acc)
+        return acc * math.copysign(1, self.wind_velocity)
+
+    def should_decelerate(self):
+        wind_v2 = self.wind_velocity ** 2 * math.copysign(1, self.wind_velocity)
+        if self.wind_effect < wind_v2 < 0:
+            return True
+        if self.wind_effect > wind_v2 > 0:
+            return True
+        if self.wind_effect and not self.wind_velocity:
+            return True
+        return False
+
+    def calc_wind_effect(self, dt):
+        if self.should_decelerate():
+            self.wind_effect -= self.wind_decelerate(dt)
+        else:
+            self.wind_effect += self.wind_accelerate(dt)
+
+    def aaa(self, dt):
+        wind_v2 = self.wind_velocity ** 2
+        if self.wind_effect == wind_v2:
+            return 0
+
+        acc = wind_v2 * dt
+        acc = min(acc, abs(self.wind_velocity - self.wind_effect))
+        acc *= math.copysign(1.0, self.wind_velocity)
+
+        if abs(self.wind_effect) < wind_v2:
+            return acc
+
+        return -acc
+
+    def calc_air_resistance(self, dt) -> float:
         dec = Rocket.air_res * dt * (1 if self.force_x < 0 else -1)
-        #if abs(dec) > abs(self.force_x):
-        #    dec = self.force_x * -1
-        #dec = 0
-        left = self.left_engine.on * Engine.power * dt
-        right = self.right_engine.on * -Engine.power * dt
-        dx = 0 + left + right + dec
-        # print(f'left={left}, right={right}, dec={dec}, dx={dx}')
-        return dx
+        if abs(dec) > abs(self.force_x):
+            dec = self.force_x * -1
 
-    def calc_dy(self, dt) -> float:
-        return 0.0
+        return dec
+
+    def calc_dfx(self, dt) -> float:
+        dec = self.calc_air_resistance(dt)
+        left = self.left_engine.calc_thrust(dt)
+        right = self.right_engine.calc_thrust(dt) * -1
+        return left + right + dec
+
+    def calc_dfy(self, dt) -> float:
+        self.force_y = self.force_y
+        return 0.0 * dt
 
     def move_x(self, timedelta):
-        # print(f'x force: {self.force_x}')
-        dx = self.force_x * timedelta
+        dx = (self.force_x + self.wind_effect) * timedelta
         self.center.x += dx
         self.up.x += dx
         self.left.x += dx
@@ -92,7 +137,7 @@ class Rocket:
         self.right.y += dy
 
     def set_wind(self, wind):
-        self.wind_f = wind
+        self.wind_velocity = wind
 
     def tick(self, timedelta):
         if not timedelta:

@@ -13,6 +13,9 @@ class Engine:
     def tick(self, timedelta):
         self.timer += timedelta
 
+    def calc_thrust(self, dt) -> float:
+        return self.on * Engine.power * dt
+
     @property
     def on(self):
         return self.timer < Engine.keepalive

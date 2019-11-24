@@ -10,11 +10,12 @@ class Wind:
 
     def __init__(self, width, height):
         self.counter = 0.0
-        self.wind = random.randint(-Wind.max_wind, Wind.max_wind)
+        self.wind = 0#random.randint(-Wind.max_wind, Wind.max_wind)
         self.wind_indicator = WindIndicator(width, height)
 
     @property
     def should_change(self):
+        return False
         return random.randint(0, int(Wind.wind_change_threshold)) + Wind.wind_min_duration < self.counter
 
     def tick(self, timedelta: float):

@@ -18,9 +18,16 @@ class Kerbal:
         self.last_time = Kerbal.millis()
         self.win.add_handler('a', lambda x: self.left())
         self.win.add_handler('d', lambda x: self.right())
-
+        self.win.add_handler('j', lambda x: self.dec_wind())
+        self.win.add_handler('k', lambda x: self.inc_wind())
         # self.win.add_handler('<KeyRelease-a>', lambda x: print('A up'))
         # self.win.add_handler('<KeyRelease-d>', lambda x: print('D up'))
+
+    def dec_wind(self):
+        self.wind.wind = max(self.wind_v - 1, -10)
+
+    def inc_wind(self):
+        self.wind.wind = min(self.wind_v + 1, 10)
 
     def left(self):
         self.rocket.enable_engine('right')
