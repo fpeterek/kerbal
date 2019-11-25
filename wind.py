@@ -10,13 +10,23 @@ class Wind:
 
     def __init__(self, width, height):
         self.counter = 0.0
-        self.wind = 0#random.randint(-Wind.max_wind, Wind.max_wind)
+        self.wind = random.randint(-Wind.max_wind, Wind.max_wind)
         self.wind_indicator = WindIndicator(width, height)
+
+        self.change_fun = self.change_enabled
+        self.inc_wind = self.inc_wind_and_disable_auto
+        self.dec_wind = self.dec_wind_and_disable_auto
+
+    @staticmethod
+    def change_disabled():
+        return False
+
+    def change_enabled(self):
+        return random.randint(0, int(Wind.wind_change_threshold)) + Wind.wind_min_duration < self.counter
 
     @property
     def should_change(self):
-        return False
-        return random.randint(0, int(Wind.wind_change_threshold)) + Wind.wind_min_duration < self.counter
+        return self.change_fun()
 
     def tick(self, timedelta: float):
         self.counter += timedelta
@@ -31,6 +41,25 @@ class Wind:
         self.wind = max(self.wind, -Wind.max_wind)
         self.wind = min(self.wind, Wind.max_wind)
         self.counter = 0.0
+
+    def disable_auto(self):
+        self.change_fun = self.change_disabled
+        self.inc_wind = self.inc_fun
+        self.dec_wind = self.dec_fun
+
+    def inc_wind_and_disable_auto(self):
+        self.disable_auto()
+        self.inc_wind()
+
+    def dec_wind_and_disable_auto(self):
+        self.disable_auto()
+        self.dec_wind()
+
+    def inc_fun(self):
+        self.wind = min(self.wind + 1, 10)
+
+    def dec_fun(self):
+        self.wind = max(self.wind - 1, -10)
 
     def draw(self, canvas: tkinter.Canvas):
         canvas.create_text(canvas.winfo_width() - 40, 10, text=f'Wind={self.wind}')
