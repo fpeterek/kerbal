@@ -63,56 +63,17 @@ class Rocket:
         self.force_y += self.calc_dfy(dt)
         self.bound_forces()
 
-    def wind_decelerate(self, dt: float) -> float:
-        dec = Rocket.wind_res * dt
-        if abs(self.wind_effect) - dec < 0:
-            dec = -self.wind_effect
-        return dec * math.copysign(1, self.wind_velocity)
-
-    def wind_accelerate(self, dt: float) -> float:
-        wind_v2 = self.wind_velocity ** 2
-        acc = wind_v2 * dt
-        if abs(self.wind_effect) + acc > wind_v2:
-            acc = wind_v2 - abs(self.wind_effect)
-        print(acc)
-        return acc * math.copysign(1, self.wind_velocity)
-
-    def should_decelerate(self):
-        if not self.wind_velocity:
-            return False
-        if math.copysign(1, self.wind_velocity) != math.copysign(1, self.wind_effect):
-            return True
-        wind_v2 = self.wind_velocity * 10
-        if self.wind_effect < wind_v2 <= 0:
-            return True
-        if self.wind_effect > wind_v2 >= 0:
-            return True
-        if self.wind_effect and not self.wind_velocity:
-            return True
-        return False
-
-    def should_accelerate(self):
-        if math.copysign(1, self.wind_velocity) != math.copysign(1, self.wind_effect):
-            return True
-        if self.wind_velocity == 0:
-            return False
-        if 0 > self.wind_velocity < self.wind_effect:
-            return True
-        if self.wind_effect < self.wind_velocity > 0:
-            return True
-        return False
-
     def calc_wind_effect(self, dt):
-        if self.should_decelerate():
-            self.wind_effect -= self.wind_decelerate(dt)
-        if self.should_accelerate():
-            self.wind_effect += self.wind_accelerate(dt)
+        self.wind_effect += self.wind_velocity * 10 * dt
+        fun = max
+        if self.wind_velocity < 0:
+            fun = min
+        self.wind_effect = fun(self.wind_effect, self.wind_velocity * 10)
 
     def calc_air_resistance(self, dt) -> float:
         dec = Rocket.air_res * dt * (1 if self.force_x < 0 else -1)
         if abs(dec) > abs(self.force_x):
             dec = self.force_x * -1
-
         return dec
 
     def calc_dfx(self, dt) -> float:
