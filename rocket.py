@@ -65,9 +65,9 @@ class Rocket:
 
     def calc_wind_effect(self, dt):
         self.wind_effect += self.wind_velocity * 10 * dt
-        fun = max
+        fun = min
         if self.wind_velocity < 0:
-            fun = min
+            fun = max
         self.wind_effect = fun(self.wind_effect, self.wind_velocity * 10)
 
     def calc_air_resistance(self, dt) -> float:
