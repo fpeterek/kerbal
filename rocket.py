@@ -10,8 +10,8 @@ class Rocket:
     base_tilt_left = 235.0
     base_tilt_right = 305.0
     air_res = 360.0
-    # Use different resistance value when slowing down due to lower wind to make the rocket movement smoother
-    wind_res = 50
+    terminal_velocity = 180
+    g = 100
     max_horizontal_velocity = 360.0
 
     def __init__(self, x, y, width, height):
@@ -54,8 +54,11 @@ class Rocket:
         self.center.draw(canvas)
 
     def bound_forces(self):
-        self.force_x = max(self.force_x, Rocket.max_horizontal_velocity * -1)
+        self.force_x = max(self.force_x, -Rocket.max_horizontal_velocity)
         self.force_x = min(self.force_x, Rocket.max_horizontal_velocity)
+
+        self.force_y = min(self.force_y, Rocket.terminal_velocity)
+        self.force_y = max(self.force_y, -Rocket.terminal_velocity)
 
     def calc_forces(self, dt):
         self.calc_wind_effect(dt)
@@ -83,8 +86,9 @@ class Rocket:
         return left + right + dec
 
     def calc_dfy(self, dt) -> float:
-        self.force_y = self.force_y
-        return 0.0 * dt
+        gravity = Rocket.g * dt
+        engine = self.bottom_engine.calc_thrust(dt) * -1
+        return gravity + engine
 
     def move_x(self, timedelta):
         dx = (self.force_x + self.wind_effect) * timedelta

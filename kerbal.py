@@ -18,6 +18,7 @@ class Kerbal:
         self.last_time = Kerbal.millis()
         self.win.add_handler('a', lambda x: self.left())
         self.win.add_handler('d', lambda x: self.right())
+        self.win.add_handler('w', lambda x: self.up())
         self.win.add_handler('j', lambda x: self.wind.dec_wind())
         self.win.add_handler('k', lambda x: self.wind.inc_wind())
         # self.win.add_handler('<KeyRelease-a>', lambda x: print('A up'))
@@ -25,14 +26,14 @@ class Kerbal:
 
     def left(self):
         self.rocket.enable_engine('right')
-        self.rocket.tilt(1, 'left')
+        # self.rocket.tilt(1, 'left')
 
     def right(self):
         self.rocket.enable_engine('left')
-        self.rocket.tilt(1, 'right')
+        # self.rocket.tilt(1, 'right')
 
     def up(self):
-        pass
+        self.rocket.enable_engine('bottom')
 
     def run(self):
         while self.win.open:
