@@ -10,8 +10,8 @@ class Rocket:
     base_tilt_left = 235.0
     base_tilt_right = 305.0
     air_res = 360.0
-    terminal_velocity = 180
-    g = 100
+    terminal_velocity = 300
+    g = 350
     max_horizontal_velocity = 360.0
 
     def __init__(self, x, y, width, height):

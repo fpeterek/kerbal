@@ -2,6 +2,7 @@ from rocket import Rocket
 from wind import Wind
 from window import Window
 import time
+import keyboard
 
 
 class Kerbal:
@@ -16,13 +17,8 @@ class Kerbal:
         self.rocket = Rocket(x=120, y=300, width=50, height=100)
         self.wind_v = self.wind.tick(0)
         self.last_time = Kerbal.millis()
-        self.win.add_handler('a', lambda x: self.left())
-        self.win.add_handler('d', lambda x: self.right())
-        self.win.add_handler('w', lambda x: self.up())
         self.win.add_handler('j', lambda x: self.wind.dec_wind())
         self.win.add_handler('k', lambda x: self.wind.inc_wind())
-        # self.win.add_handler('<KeyRelease-a>', lambda x: print('A up'))
-        # self.win.add_handler('<KeyRelease-d>', lambda x: print('D up'))
 
     def left(self):
         self.rocket.enable_engine('right')
@@ -35,10 +31,19 @@ class Kerbal:
     def up(self):
         self.rocket.enable_engine('bottom')
 
+    def handle_keyboard(self):
+        if keyboard.is_pressed('a'):
+            self.left()
+        if keyboard.is_pressed('d'):
+            self.right()
+        if keyboard.is_pressed('w'):
+            self.up()
+
     def run(self):
         while self.win.open:
             c_time = Kerbal.millis()
             delta = (c_time - self.last_time) / 1000
+            self.handle_keyboard()
             self.tick(delta)
             self.last_time = c_time
 
