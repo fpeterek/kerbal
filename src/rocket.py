@@ -1,4 +1,5 @@
 import math
+import tkinter
 
 from engine import Engine
 from gravity_point import GravityPoint
@@ -27,6 +28,7 @@ class Rocket:
         self.force_x = 0
         self.force_y = 0
         self.force_r = 0
+        self.sprite = tkinter.PhotoImage('resources/kerbal.png')
 
         self.left_engine = Engine.side_engine()
         self.right_engine = Engine.side_engine()
@@ -47,11 +49,13 @@ class Rocket:
         self.left.y = self.center.y - l_offset_y
         self.left.y = self.center.y - l_offset_y
 
-    def draw(self, canvas):
+    def draw(self, canvas: tkinter.Canvas):
         self.up.draw(canvas)
         self.left.draw(canvas)
         self.right.draw(canvas)
         self.center.draw(canvas)
+        print(self.sprite.height(), self.sprite.width())
+        canvas.create_image(100, 100, image=self.sprite, anchor=tkinter.NW)
 
     def bound_forces(self):
         self.force_x = max(self.force_x, -Rocket.max_horizontal_velocity)
