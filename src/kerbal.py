@@ -60,7 +60,10 @@ class Kerbal:
         self.win.update()
 
 
-if __name__ == '__main__':
+def main():
     kerbal = Kerbal()
     kerbal.run()
 
+
+if __name__ == '__main__':
+    main()
