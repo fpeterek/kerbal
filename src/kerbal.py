@@ -1,4 +1,5 @@
 from rocket import Rocket
+from sea import Sea, SeaBackground
 from wind import Wind
 from window import Window
 import time
@@ -14,6 +15,8 @@ class Kerbal:
     def __init__(self):
         self.win = Window((1600, 900))
         self.wind = Wind(1600, 900)
+        self.sea_background = SeaBackground(1600, 900)
+        self.sea = Sea(1600, 900)
         self.rocket = Rocket(x=120, y=300, width=50, height=100)
         self.wind_v = self.wind.tick(0)
         self.last_time = Kerbal.millis()
@@ -56,7 +59,9 @@ class Kerbal:
     def draw(self):
         self.win.clear()
         self.win.draw(self.wind)
+        self.win.draw(self.sea_background)
         self.win.draw(self.rocket)
+        self.win.draw(self.sea)
         self.win.update()
 
 
