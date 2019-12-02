@@ -10,8 +10,8 @@ class Rocket:
     base_tilt_left = 235.0
     base_tilt_right = 305.0
     air_res = 360.0
-    terminal_velocity = 300
-    g = 350
+    terminal_velocity = 500
+    g = 500
     max_horizontal_velocity = 360.0
 
     def __init__(self, x, y, width, height):
@@ -28,9 +28,9 @@ class Rocket:
         self.force_y = 0
         self.force_r = 0
 
-        self.left_engine = Engine()
-        self.right_engine = Engine()
-        self.bottom_engine = Engine()
+        self.left_engine = Engine.side_engine()
+        self.right_engine = Engine.side_engine()
+        self.bottom_engine = Engine.bottom_engine()
 
         self.ud_dist = \
             ((self.left.x - self.up.x) ** 2 + (self.left.y - self.up.y) ** 2) ** 0.5
