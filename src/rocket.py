@@ -2,6 +2,7 @@ import math
 import tkinter
 from PIL import ImageTk, Image
 
+import settings
 from engine import Engine
 from gravity_point import GravityPoint
 
@@ -54,10 +55,11 @@ class Rocket:
         self.left.y = self.center.y - l_offset_y
 
     def draw(self, canvas: tkinter.Canvas):
-        self.up.draw(canvas)
-        self.left.draw(canvas)
-        self.right.draw(canvas)
-        self.center.draw(canvas)
+        if settings.rocket_display_points:
+            self.up.draw(canvas)
+            self.left.draw(canvas)
+            self.right.draw(canvas)
+            self.center.draw(canvas)
         canvas.create_image(self.left.x, self.up.y, image=self.sprite, anchor=tkinter.NW)
 
     def bound_forces(self):
@@ -97,19 +99,25 @@ class Rocket:
         engine = self.bottom_engine.calc_thrust(dt) * -1
         return gravity + engine
 
-    def move_x(self, timedelta):
-        dx = (self.force_x + self.wind_effect) * timedelta
+    def move_x(self, dx):
         self.center.x += dx
         self.up.x += dx
         self.left.x += dx
         self.right.x += dx
 
-    def move_y(self, timedelta):
-        dy = self.force_y * timedelta
+    def move_y(self, dy):
         self.center.y += dy
         self.up.y += dy
         self.left.y += dy
         self.right.y += dy
+
+    def move(self, dx, dy):
+        self.move_x(dx)
+        self.move_y(dy)
+
+    @property
+    def forces(self) -> tuple:
+        return self.force_x, self.force_y
 
     def set_wind(self, wind):
         self.wind_velocity = wind
@@ -118,8 +126,8 @@ class Rocket:
         if not timedelta:
             return
         self.calc_forces(timedelta)
-        self.move_x(timedelta)
-        self.move_y(timedelta)
+        # self.move_x(timedelta)
+        # self.move_y(timedelta)
         self.tick_engines(timedelta)
 
     def tick_engines(self, timedelta):

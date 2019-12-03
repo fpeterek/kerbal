@@ -4,8 +4,8 @@ import tkinter
 
 class Explosion:
 
-    width = 100
-    height = 100
+    width = 300
+    height = 300
     sprites = 12
     period = 0.1
 
@@ -15,9 +15,10 @@ class Explosion:
 
     def __init__(self, x, y):
         img: Image.Image = Image.open('resources/explosion.png')
-        img = img.resize((1200, 100), Image.NONE)
+        img = img.resize((Explosion.width*Explosion.sprites, Explosion.height), Image.NONE)
+        count = Explosion.sprites
         self.sprites = [
-            img.crop((i*Explosion.width, 0, Explosion.width*(i+1), Explosion.height)) for i in range(0, 12)
+            img.crop((i*Explosion.width, 0, Explosion.width*(i+1), Explosion.height)) for i in range(0, count)
         ]
         self.sprites = list(map(lambda image: ImageTk.PhotoImage(image), self.sprites))
         self.phase = 0
