@@ -26,6 +26,7 @@ class Kerbal:
         self.wind_v = self.wind.tick(0)
         self.explosion = None
         self.last_time = Kerbal.millis()
+        self.controls_enables = True
         self.win.add_handler('j', lambda x: self.wind.dec_wind())
         self.win.add_handler('k', lambda x: self.wind.inc_wind())
         self.win.add_handler('<space>', lambda x: self.die())
@@ -35,15 +36,15 @@ class Kerbal:
         self.explosion = Explosion(self.rocket.center.x, self.rocket.center.y)
 
     def left(self):
-        if self.rocket:
+        if self.controls_enables and self.rocket:
             self.rocket.enable_engine('right')
 
     def right(self):
-        if self.rocket:
+        if self.controls_enables and self.rocket:
             self.rocket.enable_engine('left')
 
     def up(self):
-        if self.rocket:
+        if self.controls_enables and self.rocket:
             self.rocket.enable_engine('bottom')
 
     @property
@@ -56,6 +57,7 @@ class Kerbal:
         self.wind_v = self.wind.tick(0)
         self.explosion = None
         self.last_time = Kerbal.millis()
+        self.controls_enables = True
 
     def die(self):
         self.explosion = Explosion(self.rocket.center.x, self.rocket.center.y)
@@ -85,9 +87,23 @@ class Kerbal:
         self.rocket_bounds()
 
     def rocket_bounds(self):
+        platform_intersect = self.rocket.left.y > self.platform.y
+        platform_intersect = platform_intersect and self.rocket.right.x > self.platform.x
+        platform_intersect = platform_intersect and self.rocket.left.x < self.platform.x + self.platform.width
+        if platform_intersect:
+            fx, fy = self.rocket.forces
+            if abs(fy) <= Rocket.max_v_to_land:
+                print(fy)
+                return self.land()
+            else:
+                return self.die()
         if self.rocket.left.y > self.sea.y:
             self.rocket.move_y(self.sea.y - self.rocket.left.y)
             self.die()
+
+    def land(self):
+        self.controls_enables = False
+        self.rocket.disable_forces()
 
     def tick(self, timedelta: float):
         self.wind_v = self.wind.tick(timedelta)

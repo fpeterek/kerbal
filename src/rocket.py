@@ -16,6 +16,7 @@ class Rocket:
     terminal_velocity = 500
     g = 500
     max_horizontal_velocity = 360.0
+    max_v_to_land = 100
 
     def __init__(self, x, y, width, height):
         self.angle = 0.0
@@ -30,6 +31,7 @@ class Rocket:
         self.force_x = 0
         self.force_y = 0
         self.force_r = 0
+        self.affected_by_forces = True
 
         img = Image.open('resources/kerbal.png')
         img = img.resize((self.width, self.height), Image.NONE)
@@ -70,6 +72,8 @@ class Rocket:
         self.force_y = max(self.force_y, -Rocket.terminal_velocity)
 
     def calc_forces(self, dt):
+        if not self.affected_by_forces:
+            return
         self.calc_wind_effect(dt)
         self.force_x += self.calc_dfx(dt)
         self.force_y += self.calc_dfy(dt)
@@ -114,6 +118,12 @@ class Rocket:
     def move(self, dx, dy):
         self.move_x(dx)
         self.move_y(dy)
+
+    def disable_forces(self):
+        self.force_x = 0
+        self.force_y = 0
+        self.force_r = 0
+        self.affected_by_forces = False
 
     @property
     def forces(self) -> tuple:
