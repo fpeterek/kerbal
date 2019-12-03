@@ -1,3 +1,4 @@
+from explosion import Explosion
 from rocket import Rocket
 from sea import Sea, SeaBackground
 from wind import Wind
@@ -19,9 +20,14 @@ class Kerbal:
         self.sea = Sea(1600, 900)
         self.rocket = Rocket(x=120, y=300, width=50, height=100)
         self.wind_v = self.wind.tick(0)
+        self.explosion = None
         self.last_time = Kerbal.millis()
         self.win.add_handler('j', lambda x: self.wind.dec_wind())
         self.win.add_handler('k', lambda x: self.wind.inc_wind())
+        self.win.add_handler('<space>', lambda x: self.rand_explosion())
+
+    def rand_explosion(self):
+        self.explosion = Explosion(self.rocket.center.x, self.rocket.center.y)
 
     def left(self):
         self.rocket.enable_engine('right')
@@ -54,6 +60,10 @@ class Kerbal:
         self.wind_v = self.wind.tick(timedelta)
         self.rocket.set_wind(self.wind_v)
         self.rocket.tick(timedelta)
+        if self.explosion:
+            self.explosion.tick(timedelta)
+            if not self.explosion.keepalive:
+                self.explosion = None
         self.draw()
 
     def draw(self):
@@ -62,6 +72,8 @@ class Kerbal:
         self.win.draw(self.sea_background)
         self.win.draw(self.rocket)
         self.win.draw(self.sea)
+        if self.explosion:
+            self.win.draw(self.explosion)
         self.win.update()
 
 

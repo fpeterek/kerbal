@@ -3,7 +3,7 @@ import tkinter
 
 class Sea:
 
-    color = '#072aab'
+    color = '#3782fa'
 
     def __init__(self, width, height):
         self.win_width = width
