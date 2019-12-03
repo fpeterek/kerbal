@@ -1,4 +1,5 @@
 from explosion import Explosion
+from rocket_platform import Platform
 from rocket import Rocket
 from sea import Sea, SeaBackground
 from wind import Wind
@@ -20,6 +21,7 @@ class Kerbal:
         self.wind = Wind(1600, 900)
         self.sea_background = SeaBackground(1600, 900)
         self.sea = Sea(1600, 900)
+        self.platform = Platform(self.sea.width // 2, self.sea.y)
         self.rocket = self.rand_rocket
         self.wind_v = self.wind.tick(0)
         self.explosion = None
@@ -35,12 +37,10 @@ class Kerbal:
     def left(self):
         if self.rocket:
             self.rocket.enable_engine('right')
-        # self.rocket.tilt(1, 'left')
 
     def right(self):
         if self.rocket:
             self.rocket.enable_engine('left')
-        # self.rocket.tilt(1, 'right')
 
     def up(self):
         if self.rocket:
@@ -105,6 +105,7 @@ class Kerbal:
         self.win.clear()
         self.win.draw(self.wind)
         self.win.draw(self.sea_background)
+        self.win.draw(self.platform)
         if self.rocket:
             self.win.draw(self.rocket)
         self.win.draw(self.sea)
