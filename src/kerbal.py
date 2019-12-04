@@ -12,15 +12,18 @@ import keyboard
 
 class Kerbal:
 
+    win_width = 1450
+    win_height = 800
+
     @staticmethod
     def millis():
         return time.time_ns() // 1_000_000
 
     def __init__(self):
-        self.win = Window((1600, 900))
-        self.wind = Wind(1600, 900)
-        self.sea_background = SeaBackground(1600, 900)
-        self.sea = Sea(1600, 900)
+        self.win = Window((Kerbal.win_width, Kerbal.win_height))
+        self.wind = Wind(Kerbal.win_width, Kerbal.win_height)
+        self.sea_background = SeaBackground(Kerbal.win_width, Kerbal.win_height)
+        self.sea = Sea(Kerbal.win_width, Kerbal.win_height)
         self.platform = Platform(self.sea.width // 2, self.sea.y)
         self.rocket = self.rand_rocket
         self.wind_v = self.wind.tick(0)
@@ -49,10 +52,11 @@ class Kerbal:
 
     @property
     def rand_rocket(self) -> Rocket:
-        return Rocket(x=random.randint(100, 1450), y=100, width=75, height=150)
+        x = random.randint(75, Kerbal.win_width-75)
+        return Rocket(x=x, y=100, width=75, height=150)
 
     def reset(self):
-        self.wind = Wind(1600, 900)
+        self.wind = Wind(Kerbal.win_width, Kerbal.win_height)
         self.rocket = self.rand_rocket
         self.wind_v = self.wind.tick(0)
         self.explosion = None
@@ -93,7 +97,6 @@ class Kerbal:
         if platform_intersect:
             fx, fy = self.rocket.forces
             if abs(fy) <= Rocket.max_v_to_land:
-                print(fy)
                 return self.land()
             else:
                 return self.die()

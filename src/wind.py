@@ -22,7 +22,8 @@ class Wind:
         return False
 
     def change_enabled(self):
-        return random.randint(0, int(Wind.wind_change_threshold)) + Wind.wind_min_duration < self.counter
+        return random.randint(0, int(Wind.wind_change_threshold)) \
+               + Wind.wind_min_duration < self.counter
 
     @property
     def should_change(self):
@@ -79,7 +80,7 @@ class WindIndicator:
             self.create_row(width, i * step)
 
     def create_row(self, width, y):
-        first = random.randint(0, width / 4)
+        first = random.randint(0, width // 4)
         dist = width / 4 + WindRect.width / 4
         for i in range(0, 4):
             self.particles.append(WindRect(first + dist * i, y))

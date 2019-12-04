@@ -80,6 +80,8 @@ class Rocket:
         self.bound_forces()
 
     def calc_wind_effect(self, dt):
+        if not self.affected_by_forces:
+            return
         self.wind_effect += self.wind_velocity * 10 * dt
         fun = min
         if self.wind_velocity < 0:
@@ -123,11 +125,12 @@ class Rocket:
         self.force_x = 0
         self.force_y = 0
         self.force_r = 0
+        self.wind_effect = 0
         self.affected_by_forces = False
 
     @property
     def forces(self) -> tuple:
-        return self.force_x, self.force_y
+        return self.force_x + self.wind_effect, self.force_y
 
     def set_wind(self, wind):
         self.wind_velocity = wind
@@ -136,8 +139,6 @@ class Rocket:
         if not timedelta:
             return
         self.calc_forces(timedelta)
-        # self.move_x(timedelta)
-        # self.move_y(timedelta)
         self.tick_engines(timedelta)
 
     def tick_engines(self, timedelta):
