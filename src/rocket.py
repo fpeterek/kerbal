@@ -32,7 +32,7 @@ class Rocket:
         self.force_y = 0
         self.force_r = 0
         self.affected_by_forces = True
-
+        self.cog_center_dist = (self.center.y - self.up.y) - (height // 2)
         image_width = int(max(width, height) * 1.1)
 
         img = Image.open('resources/kerbal.png').resize((width, height), Image.NONE)
@@ -66,7 +66,12 @@ class Rocket:
             self.left.draw(canvas)
             self.right.draw(canvas)
             self.center.draw(canvas)
-        canvas.create_image(self.left.x, self.up.y, image=self.sprite, anchor=tkinter.NW)
+
+        offset_x = round(self.cog_center_dist * math.cos(math.radians(self.angle - 90)))
+        offset_y = round(self.cog_center_dist * math.sin(math.radians(self.angle - 90)))
+        x = self.center.x - offset_x
+        y = self.center.y + offset_y
+        canvas.create_image(self.center.x - offset_x, self.center.y + offset_y, image=self.sprite, anchor=tkinter.CENTER)
 
     def bound_forces(self):
         self.force_x = max(self.force_x, -Rocket.max_horizontal_velocity)
