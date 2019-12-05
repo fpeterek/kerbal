@@ -84,8 +84,13 @@ class Rocket:
         if not self.affected_by_forces:
             return
         self.calc_wind_effect(dt)
-        self.force_x += self.calc_dfx(dt)
-        self.force_y += self.calc_dfy(dt)
+
+        left = self.left_engine.calc_thrust(dt)
+        right = self.right_engine.calc_thrust(dt)
+        bottom = self.bottom_engine.calc_thrust(dt)
+
+        self.force_x += self.calc_dfx(dt, left, right, bottom)
+        self.force_y += self.calc_dfy(dt, left, right, bottom)
         self.bound_forces()
 
     def calc_wind_effect(self, dt):
@@ -103,16 +108,19 @@ class Rocket:
             dec = self.force_x * -1
         return dec
 
-    def calc_dfx(self, dt) -> float:
+    def calc_dfx(self, dt, left, right, bottom) -> float:
         dec = self.calc_air_resistance(dt)
-        left = self.left_engine.calc_thrust(dt)
-        right = self.right_engine.calc_thrust(dt) * -1
-        return left + right + dec
+        l_thrust = left * math.cos(math.radians(self.angle))
+        r_thrust = right * math.cos(math.radians(self.angle - 180))
+        b_thrust = bottom * math.cos(math.radians(self.angle + 90))
+        return l_thrust + r_thrust + b_thrust + dec
 
-    def calc_dfy(self, dt) -> float:
+    def calc_dfy(self, dt, left, right, bottom) -> float:
         gravity = Rocket.g * dt
-        engine = self.bottom_engine.calc_thrust(dt) * -1
-        return gravity + engine
+        l_thrust = left * math.sin(math.radians(self.angle))
+        r_thrust = right * math.sin(math.radians(self.angle - 180))
+        b_thrust = bottom * math.sin(math.radians(self.angle + 90))
+        return gravity - l_thrust - r_thrust - b_thrust
 
     def move_x(self, dx):
         self.center.x += dx
@@ -176,7 +184,7 @@ class Rocket:
         return math.radians(Rocket.base_tilt_right + self.angle)
 
     def tilt(self, time_delta, direction='left'):
-        self.angle += time_delta * 2 * (-1 + (direction == 'left') * 2)
+        self.angle += time_delta * 0.5 * (-1 + (direction == 'left') * 2)
         self.up.x = self.center.x + self.height * 0.66 * math.cos(self.up_angle)
         self.up.y = self.center.y - self.height * 0.66 * math.sin(self.up_angle)
 

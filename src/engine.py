@@ -2,8 +2,8 @@
 class Engine:
 
     keepalive = 0.05  # 50 ms
-    SIDE_ENGINE_POWER = 500.0
-    BOTTOM_ENGINE_POWER = 800.0
+    SIDE_ENGINE_POWER = 1000.0
+    BOTTOM_ENGINE_POWER = 1000.0
 
     @staticmethod
     def side_engine():
