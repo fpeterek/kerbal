@@ -33,9 +33,13 @@ class Rocket:
         self.force_r = 0
         self.affected_by_forces = True
 
-        img = Image.open('resources/kerbal.png')
-        img = img.resize((self.width, self.height), Image.NONE)
-        self.sprite = ImageTk.PhotoImage(img)
+        image_width = int(max(width, height) * 1.1)
+
+        img = Image.open('resources/kerbal.png').resize((width, height), Image.NONE)
+        square = Image.new('RGBA', (image_width, image_width), (0, 0, 0, 0))
+        square.paste(img, ((image_width - width) // 2, (image_width - height) // 2))
+        self.orig_img = square
+        self.sprite = ImageTk.PhotoImage(self.orig_img)
 
         self.left_engine = Engine.side_engine()
         self.right_engine = Engine.side_engine()
@@ -176,4 +180,5 @@ class Rocket:
 
         self.right.x = self.center.x + self.lc_dist * math.cos(self.right_angle)
         self.right.y = self.center.y - self.lc_dist * math.sin(self.right_angle)
+        self.sprite = ImageTk.PhotoImage(self.orig_img.rotate(self.angle))
 

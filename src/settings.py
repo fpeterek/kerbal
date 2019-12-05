@@ -1,1 +1,1 @@
-rocket_display_points = False
+rocket_display_points = True
