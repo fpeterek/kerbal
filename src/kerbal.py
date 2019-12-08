@@ -1,4 +1,5 @@
 from explosion import Explosion
+from gravity_point import GravityPoint
 from rocket_platform import Platform
 from rocket import Rocket
 from sea import Sea, SeaBackground
@@ -30,6 +31,7 @@ class Kerbal:
         self.explosion = None
         self.last_time = Kerbal.millis()
         self.controls_enables = True
+        self.fixed_points = []
         self.win.add_handler('j', lambda x: self.wind.dec_wind())
         self.win.add_handler('k', lambda x: self.wind.inc_wind())
         self.win.add_handler('<space>', lambda x: self.die())
@@ -61,6 +63,7 @@ class Kerbal:
         self.wind_v = self.wind.tick(0)
         self.explosion = None
         self.last_time = Kerbal.millis()
+        self.fixed_points = []
         self.controls_enables = True
 
     def die(self):
@@ -90,19 +93,37 @@ class Kerbal:
         self.rocket.move(dx, dy)
         self.rocket_bounds()
 
+    def check_point_platform(self, point: GravityPoint) -> bool:
+        return self.platform.x <= point.x <= self.platform.x + self.platform.width and point.y >= self.platform.y
+
+    def check_bounds_sea(self):
+        for point in [self.rocket.left, self.rocket.right, self.rocket.up]:
+            if point.y > self.sea.y:
+                self.rocket.move_y(self.sea.y - point.y)
+                self.die()
+
     def rocket_bounds(self):
-        platform_intersect = self.rocket.left.y > self.platform.y
-        platform_intersect = platform_intersect and self.rocket.right.x > self.platform.x
-        platform_intersect = platform_intersect and self.rocket.left.x < self.platform.x + self.platform.width
-        if platform_intersect:
+
+        if self.check_point_platform(self.rocket.left):
             fx, fy = self.rocket.forces
             if abs(fy) <= Rocket.max_v_to_land:
-                return self.land()
+                self.fixed_points += ['left']
+                self.rocket.move_y(self.platform.y - self.rocket.left.y)
             else:
                 return self.die()
-        if self.rocket.left.y > self.sea.y:
-            self.rocket.move_y(self.sea.y - self.rocket.left.y)
-            self.die()
+
+        if self.check_point_platform(self.rocket.right):
+            fx, fy = self.rocket.forces
+            if abs(fy) <= Rocket.max_v_to_land:
+                self.fixed_points += ['right']
+                self.rocket.move_y(self.platform.y - self.rocket.right.y)
+            else:
+                return self.die()
+
+        if self.fixed_points:
+            return self.land()
+
+        self.check_bounds_sea()
 
     def land(self):
         self.controls_enables = False
