@@ -40,14 +40,10 @@ class Kerbal:
 
     def left(self):
         if self.controls_enables and self.rocket:
-            self.rocket.tilt(1)
-
             self.rocket.enable_engine('right')
 
     def right(self):
         if self.controls_enables and self.rocket:
-            self.rocket.tilt(1, 'right')
-
             self.rocket.enable_engine('left')
 
     def up(self):

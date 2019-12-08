@@ -18,6 +18,10 @@ class Rocket:
     max_horizontal_velocity = 360.0
     max_v_to_land = 100
 
+    max_rotation = 50.0
+    r_acceleration = 500.0
+    r_depreciation = 100.0
+
     def __init__(self, x, y, width, height):
         self.angle = 0.0
         self.center = GravityPoint(x, y)
@@ -87,6 +91,14 @@ class Rocket:
 
         left = self.left_engine.calc_thrust(dt)
         right = self.right_engine.calc_thrust(dt)
+
+        self.force_r += bool(self.left_engine.on) * Rocket.r_acceleration * dt * -1
+        self.force_r += bool(self.right_engine.on) * Rocket.r_acceleration * dt
+        self.force_r += bool(self.force_r) * Rocket.r_depreciation * dt * (1 if self.force_r < 0 else -1)
+
+        self.force_r = max(-Rocket.max_rotation, self.force_r)
+        self.force_r = min(Rocket.max_rotation, self.force_r)
+
         bottom = self.bottom_engine.calc_thrust(dt)
 
         self.force_x += self.calc_dfx(dt, left, right, bottom)
@@ -145,6 +157,9 @@ class Rocket:
         self.wind_effect = 0
         self.affected_by_forces = False
 
+    def calc_rotation_force(self):
+        pass
+
     @property
     def forces(self) -> tuple:
         return self.force_x + self.wind_effect, self.force_y
@@ -156,6 +171,7 @@ class Rocket:
         if not timedelta:
             return
         self.calc_forces(timedelta)
+        self.tilt(timedelta)
         self.tick_engines(timedelta)
 
     def tick_engines(self, timedelta):
@@ -183,8 +199,8 @@ class Rocket:
     def right_angle(self):
         return math.radians(Rocket.base_tilt_right + self.angle)
 
-    def tilt(self, time_delta, direction='left'):
-        self.angle += time_delta * 0.5 * (-1 + (direction == 'left') * 2)
+    def tilt(self, time_delta):
+        self.angle += time_delta * self.force_r
         self.up.x = self.center.x + self.height * 0.66 * math.cos(self.up_angle)
         self.up.y = self.center.y - self.height * 0.66 * math.sin(self.up_angle)
 
