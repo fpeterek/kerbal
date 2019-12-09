@@ -20,6 +20,7 @@ class Rocket:
 
     max_rotation = 50.0
     r_acceleration = 500.0
+    gravity_rotation = 300.0
     r_depreciation = 100.0
 
     def __init__(self, x, y, width, height):
@@ -36,6 +37,8 @@ class Rocket:
         self.force_y = 0
         self.force_r = 0
         self.affected_by_forces = True
+        self.rotation_enabled = True
+        self.fixed = ''
         self.cog_center_dist = (self.center.y - self.up.y) - (height // 2)
         image_width = int(max(width, height) * 1.1)
 
@@ -71,34 +74,32 @@ class Rocket:
             self.right.draw(canvas)
             self.center.draw(canvas)
 
-        offset_x = round(self.cog_center_dist * math.cos(math.radians(self.angle - 90)))
-        offset_y = round(self.cog_center_dist * math.sin(math.radians(self.angle - 90)))
-        x = self.center.x - offset_x
-        y = self.center.y + offset_y
-        canvas.create_image(self.center.x - offset_x, self.center.y + offset_y, image=self.sprite, anchor=tkinter.CENTER)
+        x = self.center.x - round(self.cog_center_dist * math.cos(math.radians(self.angle - 90)))
+        y = self.center.y + round(self.cog_center_dist * math.sin(math.radians(self.angle - 90)))
+        canvas.create_image(x, y, image=self.sprite, anchor=tkinter.CENTER)
 
-    def bound_forces(self):
+    def bound_force_x(self):
         self.force_x = max(self.force_x, -Rocket.max_horizontal_velocity)
         self.force_x = min(self.force_x, Rocket.max_horizontal_velocity)
 
+    def bound_force_y(self):
         self.force_y = min(self.force_y, Rocket.terminal_velocity)
         self.force_y = max(self.force_y, -Rocket.terminal_velocity)
 
+    def bound_forces(self):
+        self.bound_force_x()
+        self.bound_force_y()
+
     def calc_forces(self, dt):
+        if self.rotation_enabled:
+            self.calc_rotation_force(dt)
+
         if not self.affected_by_forces:
             return
         self.calc_wind_effect(dt)
 
         left = self.left_engine.calc_thrust(dt)
         right = self.right_engine.calc_thrust(dt)
-
-        self.force_r += bool(self.left_engine.on) * Rocket.r_acceleration * dt * -1
-        self.force_r += bool(self.right_engine.on) * Rocket.r_acceleration * dt
-        self.force_r += bool(self.force_r) * Rocket.r_depreciation * dt * (1 if self.force_r < 0 else -1)
-
-        self.force_r = max(-Rocket.max_rotation, self.force_r)
-        self.force_r = min(Rocket.max_rotation, self.force_r)
-
         bottom = self.bottom_engine.calc_thrust(dt)
 
         self.force_x += self.calc_dfx(dt, left, right, bottom)
@@ -153,12 +154,33 @@ class Rocket:
     def disable_forces(self):
         self.force_x = 0
         self.force_y = 0
-        self.force_r = 0
         self.wind_effect = 0
         self.affected_by_forces = False
 
-    def calc_rotation_force(self):
-        pass
+    def disable_rotation(self):
+        self.force_r = 0
+        self.rotation_enabled = False
+
+    @property
+    def fixed_point(self):
+        if self.fixed:
+            return self.left if self.fixed == 'left' else self.right
+
+    def landing_correction(self, dt: float):
+        fixed = self.fixed_point
+        direction = 1 - 2 * (self.center.x >= fixed.x)
+        self.force_r += Rocket.gravity_rotation * direction * dt
+
+    def calc_rotation_force(self, dt: float):
+        self.force_r += bool(self.left_engine.on) * Rocket.r_acceleration * dt * -1
+        self.force_r += bool(self.right_engine.on) * Rocket.r_acceleration * dt
+        self.force_r += bool(self.force_r) * Rocket.r_depreciation * dt * (1 if self.force_r < 0 else -1)
+
+        if self.fixed:
+            self.landing_correction(dt)
+        else:
+            self.force_r = max(-Rocket.max_rotation, self.force_r)
+            self.force_r = min(Rocket.max_rotation, self.force_r)
 
     @property
     def forces(self) -> tuple:
@@ -187,6 +209,10 @@ class Rocket:
         elif engine == 'bottom':
             self.bottom_engine.turn_on()
 
+    def fix_point(self, point: str):
+        self.fixed = point
+        self.disable_forces()
+
     @property
     def up_angle(self):
         return math.radians(Rocket.base_tilt_up + self.angle)
@@ -199,8 +225,32 @@ class Rocket:
     def right_angle(self):
         return math.radians(Rocket.base_tilt_right + self.angle)
 
+    def land(self):
+        self.angle = 0
+        self.disable_forces()
+        self.disable_rotation()
+        self.tilt(0)
+
+    @property
+    def fixed_coordinates(self):
+        if not self.fixed:
+            return None, None
+        return self.fixed_point.x, self.fixed_point.y
+
+    def adjust_position(self, orig_pos):
+        if not self.fixed:
+            return
+        ox, oy = orig_pos
+        cx, cy = self.fixed_point.x, self.fixed_point.y
+        dx = ox - cx
+        dy = oy - cy
+        self.move(dx, dy)
+
     def tilt(self, time_delta):
         self.angle += time_delta * self.force_r
+
+        orig_pos = self.fixed_coordinates
+
         self.up.x = self.center.x + self.height * 0.66 * math.cos(self.up_angle)
         self.up.y = self.center.y - self.height * 0.66 * math.sin(self.up_angle)
 
@@ -209,5 +259,8 @@ class Rocket:
 
         self.right.x = self.center.x + self.lc_dist * math.cos(self.right_angle)
         self.right.y = self.center.y - self.lc_dist * math.sin(self.right_angle)
+
+        self.adjust_position(orig_pos)
+
         self.sprite = ImageTk.PhotoImage(self.orig_img.rotate(self.angle))
 
