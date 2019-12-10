@@ -123,8 +123,8 @@ class Rocket:
 
     def calc_dfx(self, dt, left, right, bottom) -> float:
         dec = self.calc_air_resistance(dt)
-        l_thrust = left * math.cos(math.radians(self.angle))
-        r_thrust = right * math.cos(math.radians(self.angle - 180))
+        l_thrust = left * math.cos(math.radians(self.angle - 180))
+        r_thrust = right * math.cos(math.radians(self.angle))
         b_thrust = bottom * math.cos(math.radians(self.angle + 90))
         return l_thrust + r_thrust + b_thrust + dec
 
