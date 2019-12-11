@@ -16,7 +16,7 @@ class Rocket:
     terminal_velocity = 500
     g = 500
     max_horizontal_velocity = 360.0
-    max_v_to_land = 100
+    max_v_to_land = 200
 
     max_rotation = 50.0
     r_acceleration = 500.0

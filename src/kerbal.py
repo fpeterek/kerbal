@@ -32,6 +32,9 @@ class Kerbal:
         self.last_time = Kerbal.millis()
         self.controls_enabled = True
         self.fixed_points = []
+        self.create_handlers()
+
+    def create_handlers(self):
         self.win.add_handler('j', lambda x: self.wind.dec_wind())
         self.win.add_handler('k', lambda x: self.wind.inc_wind())
         self.win.add_handler('<space>', lambda x: self.die())
@@ -103,37 +106,36 @@ class Kerbal:
                 self.rocket.move_y(self.sea.y - point.y - 1)
                 self.die()
 
+    def left_point_collision(self):
+        return self.check_point_platform(self.rocket.left) or 'left' in self.fixed_points
+
+    def right_point_collision(self):
+        return self.check_point_platform(self.rocket.right) or \
+               'right' in self.fixed_points
+
+    def fix_points_on_collision(self, left_collides: bool, right_collides: bool):
+        if left_collides and right_collides:
+            self.fixed_points = ['left', 'right']
+        elif left_collides:
+            self.fixed_points = ['left']
+            self.rocket.move_y(self.platform.y - self.rocket.left.y)
+            self.rocket.fix_point('left')
+        elif right_collides:
+            self.fixed_points = ['right']
+            self.rocket.move_y(self.platform.y - self.rocket.right.y)
+            self.rocket.fix_point('right')
+
     def rocket_bounds(self):
-        left_coll = self.check_point_platform(self.rocket.left) or \
-                    'left' in self.fixed_points
-        right_coll = self.check_point_platform(self.rocket.right) or \
-                     'right' in self.fixed_points
+        left_coll = self.left_point_collision()
+        right_coll = self.right_point_collision()
         fx, fy = self.rocket.forces
-        landable_v = abs(fy) <= Rocket.max_v_to_land
 
-        if left_coll and right_coll:
-            if landable_v:
-                self.fixed_points = ['left', 'right']
-            else:
-                return self.die()
-        elif left_coll:
-            if landable_v:
-                self.fixed_points = ['left']
-                self.rocket.move_y(self.platform.y - self.rocket.left.y)
-                self.rocket.fix_point('left')
-            else:
-                return self.die()
-        elif right_coll:
-            if landable_v:
-                self.fixed_points = ['right']
-                self.rocket.move_y(self.platform.y - self.rocket.right.y)
-                self.rocket.fix_point('right')
-            else:
-                return self.die()
+        if (left_coll or right_coll) and abs(fy) > Rocket.max_v_to_land:
+            return self.die()
 
+        self.fix_points_on_collision(left_coll, right_coll)
         if len(self.fixed_points) == 2:
             self.land()
-
         self.check_bounds_sea()
 
     def land(self):
@@ -141,16 +143,32 @@ class Kerbal:
         self.rocket.land()
         self.rocket.move_y(self.platform.y - self.rocket.right.y)
 
+    def update_wind(self, dt: float):
+        self.wind_v = self.wind.tick(dt)
+
+    def update_rocket(self, dt: float):
+        if not self.rocket:
+            return
+
+        self.rocket.set_wind(self.wind_v)
+        self.rocket.tick(dt)
+        self.move_rocket(dt)
+
+    def update_explosion(self, dt: float):
+        if not self.explosion:
+            return
+
+        self.explosion.tick(dt)
+        if not self.explosion.keepalive:
+            self.explosion = None
+
+    def update(self, dt: float):
+        self.update_wind(dt)
+        self.update_rocket(dt)
+        self.update_explosion(dt)
+
     def tick(self, timedelta: float):
-        self.wind_v = self.wind.tick(timedelta)
-        if self.rocket:
-            self.rocket.set_wind(self.wind_v)
-            self.rocket.tick(timedelta)
-            self.move_rocket(timedelta)
-        if self.explosion:
-            self.explosion.tick(timedelta)
-            if not self.explosion.keepalive:
-                self.explosion = None
+        self.update(timedelta)
         self.draw()
 
     def draw(self):
