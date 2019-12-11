@@ -183,7 +183,7 @@ class Rocket:
         delta = abs(self.wind_velocity) * 15 * dt
         rocket_orientation = 1 if self.up.y < self.center.y else -1
         wind_dir = 1 if self.wind_velocity < 0 else -1
-        delta *= rocket_orientation * wind_dir
+        delta *= rocket_orientation * wind_dir * (self.center.y != self.up.y)
         self.wind_rotation += delta
 
         rdir = (1 if self.wind_rotation < 0 else -1)
