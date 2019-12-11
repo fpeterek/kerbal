@@ -94,18 +94,20 @@ class Kerbal:
         self.rocket_bounds()
 
     def check_point_platform(self, point: GravityPoint) -> bool:
-        return self.platform.x <= point.x <= self.platform.x + self.platform.width and point.y >= self.platform.y
+        return self.platform.x <= point.x <= self.platform.x + self.platform.width and \
+               point.y >= self.platform.y
 
     def check_bounds_sea(self):
         for point in [self.rocket.left, self.rocket.right, self.rocket.up]:
             if point.y > self.sea.y:
-                self.rocket.move_y(self.sea.y - point.y)
+                self.rocket.move_y(self.sea.y - point.y - 1)
                 self.die()
 
     def rocket_bounds(self):
-
-        left_coll = self.check_point_platform(self.rocket.left) or 'left' in self.fixed_points
-        right_coll = self.check_point_platform(self.rocket.right) or 'right' in self.fixed_points
+        left_coll = self.check_point_platform(self.rocket.left) or \
+                    'left' in self.fixed_points
+        right_coll = self.check_point_platform(self.rocket.right) or \
+                     'right' in self.fixed_points
         fx, fy = self.rocket.forces
         landable_v = abs(fy) <= Rocket.max_v_to_land
 

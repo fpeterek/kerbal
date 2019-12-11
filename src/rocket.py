@@ -23,6 +23,8 @@ class Rocket:
     gravity_rotation = 300.0
     r_depreciation = 100.0
 
+    max_wind_r = 25.0
+
     def __init__(self, x, y, width, height):
         self.angle = 0.0
         self.center = GravityPoint(x, y)
@@ -33,6 +35,7 @@ class Rocket:
         self.right = GravityPoint(x + width*0.5, y + height*0.33)
         self.wind_velocity = 0
         self.wind_effect = 0
+        self.wind_rotation = 0
         self.force_x = 0
         self.force_y = 0
         self.force_r = 0
@@ -91,8 +94,7 @@ class Rocket:
         self.bound_force_y()
 
     def calc_forces(self, dt):
-        if self.rotation_enabled:
-            self.calc_rotation_force(dt)
+        self.calc_rotation(dt)
 
         if not self.affected_by_forces:
             return
@@ -159,6 +161,7 @@ class Rocket:
 
     def disable_rotation(self):
         self.force_r = 0
+        self.wind_rotation = 0
         self.rotation_enabled = False
 
     @property
@@ -171,10 +174,29 @@ class Rocket:
         direction = 1 - 2 * (self.center.x >= fixed.x)
         self.force_r += Rocket.gravity_rotation * direction * dt
 
+    def calc_rotation(self, dt):
+        if self.rotation_enabled:
+            self.calc_wind_rotation(dt)
+            self.calc_rotation_force(dt)
+
+    def calc_wind_rotation(self, dt):
+        delta = abs(self.wind_velocity) * 15 * dt
+        rocket_orientation = 1 if self.up.y < self.center.y else -1
+        wind_dir = 1 if self.wind_velocity < 0 else -1
+        delta *= rocket_orientation * wind_dir
+        self.wind_rotation += delta
+
+        rdir = (1 if self.wind_rotation < 0 else -1)
+        self.wind_rotation += bool(self.wind_rotation) * Rocket.r_depreciation * dt * rdir
+
+        self.wind_rotation = max(-Rocket.max_wind_r, self.wind_rotation)
+        self.wind_rotation = min(Rocket.max_wind_r, self.wind_rotation)
+
     def calc_rotation_force(self, dt: float):
         self.force_r += bool(self.left_engine.on) * Rocket.r_acceleration * dt * -1
         self.force_r += bool(self.right_engine.on) * Rocket.r_acceleration * dt
-        self.force_r += bool(self.force_r) * Rocket.r_depreciation * dt * (1 if self.force_r < 0 else -1)
+        r_dir = (1 if self.force_r < 0 else -1)
+        self.force_r += bool(self.force_r) * Rocket.r_depreciation * dt * r_dir
 
         if self.fixed:
             self.landing_correction(dt)
@@ -246,8 +268,12 @@ class Rocket:
         dy = oy - cy
         self.move(dx, dy)
 
+    @property
+    def rotation_force(self):
+        return self.force_r + self.wind_rotation
+
     def tilt(self, time_delta):
-        self.angle += time_delta * self.force_r
+        self.angle += time_delta * self.rotation_force
 
         orig_pos = self.fixed_coordinates
 
