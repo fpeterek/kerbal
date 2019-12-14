@@ -2,7 +2,6 @@ import math
 import tkinter
 from PIL import ImageTk, Image
 
-import settings
 from engine import Engine
 from gravity_point import GravityPoint
 
@@ -17,6 +16,7 @@ class Rocket:
     g = 500
     max_horizontal_velocity = 360.0
     max_v_to_land = 200
+    display_points = False
 
     max_rotation = 50.0
     r_acceleration = 500.0
@@ -82,7 +82,7 @@ class Rocket:
         self.left.y = self.center.y - l_offset_y
 
     def draw(self, canvas: tkinter.Canvas):
-        if settings.rocket_display_points:
+        if Rocket.display_points:
             self.up.draw(canvas)
             self.left.draw(canvas)
             self.right.draw(canvas)
