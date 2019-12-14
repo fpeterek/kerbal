@@ -25,6 +25,18 @@ class Rocket:
 
     max_wind_r = 25.0
 
+    orig_img = None
+    image_width = 0
+    width = 0
+    height = 0
+
+    @staticmethod
+    def load_sprite(im_width, width, height):
+        img = Image.open('resources/kerbal.png').resize((width, height), Image.NONE)
+        square = Image.new('RGBA', (im_width, im_width), (0, 0, 0, 0))
+        square.paste(img, ((im_width - width) // 2, (im_width - height) // 2))
+        Rocket.orig_img = square
+
     def __init__(self, x, y, width, height):
         self.angle = 0.0
         self.center = GravityPoint(x, y)
@@ -45,11 +57,10 @@ class Rocket:
         self.cog_center_dist = (self.center.y - self.up.y) - (height // 2)
         image_width = int(max(width, height) * 1.1)
 
-        img = Image.open('resources/kerbal.png').resize((width, height), Image.NONE)
-        square = Image.new('RGBA', (image_width, image_width), (0, 0, 0, 0))
-        square.paste(img, ((image_width - width) // 2, (image_width - height) // 2))
-        self.orig_img = square
-        self.sprite = ImageTk.PhotoImage(self.orig_img)
+        if image_width != Rocket.image_width:
+            Rocket.load_sprite(image_width, width, height)
+
+        self.sprite = ImageTk.PhotoImage(Rocket.orig_img)
 
         self.left_engine = Engine.side_engine()
         self.right_engine = Engine.side_engine()
