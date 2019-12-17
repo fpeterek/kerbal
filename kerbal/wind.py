@@ -63,7 +63,8 @@ class Wind:
         self.wind = max(self.wind - 1, -10)
 
     def draw(self, canvas: tkinter.Canvas):
-        canvas.create_text(canvas.winfo_width() - 40, 10, text=f'Wind={self.wind}')
+        unit = 'kt' if abs(self.wind) == 1 else 'kts'
+        canvas.create_text(canvas.winfo_width() - 50, 10, text=f'Wind={self.wind} {unit}')
         self.wind_indicator.draw(canvas)
 
 
