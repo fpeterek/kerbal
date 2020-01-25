@@ -9,8 +9,8 @@ class Window:
 
         self.master = tkinter.Tk()
         self.master.title('Playground')
-        self.master.protocol("WM_DELETE_WINDOW", lambda: self.master.destroy())
-        self.master.bind('<Escape>', lambda e: self.master.destroy())
+        self.master.protocol("WM_DELETE_WINDOW", lambda: self.close())
+        self.master.bind('<Escape>', lambda e: self.close())
 
         self.canvas = tkinter.Canvas(self.master, width=win_size[0],
                                      height=win_size[1], background='light blue')
